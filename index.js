@@ -1,7 +1,5 @@
-import "discord.js"
-import "os"
 const Discord = require('discord.js');
-const {TOKEN, PREFIX} = require('./Json/config.json');
+const {TOKEN, PREFIX} = require('./.gitignore/config.json');
 const {MSG_HELP} = require('./Json/messages.json');
 const {isCommand, isLetter} = require('./JavaScript/functions.js');
 const {test} = require('./JavaScript/commands');

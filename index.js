@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const {TOKEN, PREFIX} = require('./config.json');
+const {TOKEN, PREFIX} = require('./Json/config.json');
 const {MSG_HELP} = require('./Json/messages.json');
 //const {isCommand, isLetter} = require('./JavaScript/functions.js');
 //const {test} = require('./JavaScript/commands');
@@ -15,6 +15,7 @@ const client = new Discord.Client({
     ]
 })
 const queue = new Map();
+var loop = false;
 
 client.once("ready", () =>{
     console.log("Bereit!");
@@ -40,17 +41,17 @@ client.on("message", message =>{
         message.reply("polo");
     }
     if(message.author.bot) {
-        console.log("Bot is author of message");
+        //console.log("Bot is author of message");
         return;
     }
     if(!message.content.startsWith(PREFIX)) {
-        console.log("Präfix fehlt");
+        //console.log("Präfix fehlt");
         return;
     }
     if(message.content === PREFIX ||
         message.content === PREFIX + "help" || 
         message.content === PREFIX + "hilfe"){
-        message.channel.send(MSG_HELP)
+        return (message.channel.send(MSG_HELP));
     }
     const Warteschlange = queue.get(message.guild.id);
 
@@ -65,6 +66,13 @@ client.on("message", message =>{
         skip(message,Warteschlange);
     } else if(message.content.startsWith(PREFIX+"stop")){
         stop(message,Warteschlange);
+    } else if(message.content.startsWith(PREFIX + "loop")){
+        if(loop){
+            loop = false
+        }else{
+            loop = true
+        }
+        message.channel.send("Loop ist jetzt " + loop)
     } else if(message.content === "!test"){
         message.channel.send("test erfolgreich!");
     } else{
@@ -77,7 +85,7 @@ async function execute(message, Warteschlange){
     const args = message.content.split(" ");
 
     const voiceChannel = message.member.voice.channel;
-    console.log("voiceChannel: "+voiceChannel);
+    //console.log("voiceChannel: "+voiceChannel);
     if(!voiceChannel){
         return message.channel.send("Bitte gehe in einen Voice-Channel um Musik zu spielen");
     }
@@ -115,7 +123,7 @@ async function execute(message, Warteschlange){
         }
     } else {
         Warteschlange.songs.push(song);
-        return message.channel.send(song.title + "wurde der Warteschlange hinzugefügt");
+        return message.channel.send("Ich habe \n" + song.title + "\n der Warteschlange hinzugefügt");
     }
 }
 
@@ -146,13 +154,17 @@ function play (guild, song){
     const dispatcher = Warteschlange.connection
         .play(ytdl(song.url))
         .on("finish",()=>{
-            //console.log(Warteschlange.songs);
+            if(loop && !Warteschlange.songs == []){
+                Warteschlange.songs[1] = Warteschlange.songs[0];
+            }
             Warteschlange.songs.shift();
             play(guild, Warteschlange.songs[0]);
         })
         .on("error", error => console.log(error));
     dispatcher.setVolumeLogarithmic(Warteschlange.volume/5);
+    if(loop = true){
     Warteschlange.textChannel.send("Es spielt jetzt: "+song.title)
+    }
 }
 
 client.login(TOKEN)

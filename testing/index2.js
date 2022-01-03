@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const {TOKEN} = require('./config.json')
 const client = new Discord.Client({
     intents:[
         Discord.Intents.FLAGS.GUILDS,
@@ -31,4 +32,4 @@ client.on("message", message =>{
     }
 })
 
-client.login("OTI2MjI5MzUyMTMwMTc5MTI0.Yc4oTg.9OLNfR8PMlOlYZmCcQhObIroh_o")
+client.login(TOKEN)

@@ -1,8 +1,8 @@
 const Discord = require('discord.js');
-const {TOKEN, PREFIX} = require('./.gitignore/config.json');
+const {TOKEN, PREFIX} = require('./config.json');
 const {MSG_HELP} = require('./Json/messages.json');
-const {isCommand, isLetter} = require('./JavaScript/functions.js');
-const {test} = require('./JavaScript/commands');
+//const {isCommand, isLetter} = require('./JavaScript/functions.js');
+//const {test} = require('./JavaScript/commands');
 const { Server } = require('http');
 const ytdl = require('ytdl-core');
 const { Console } = require('console');
@@ -33,9 +33,12 @@ client.once("disconnect", () =>{
 })
 
 //Commands:
-client.on("messageCreate", message =>{
-    console.log("MESSAGE:");
+client.on("message", message =>{
+    console.log("Bot geht noch")
     //console.log(message);
+    if(message.content === "marco"){
+        message.reply("polo");
+    }
     if(message.author.bot) {
         console.log("Bot is author of message");
         return;
@@ -85,7 +88,7 @@ async function execute(message, Warteschlange){
     }
     
     const songInfo = await ytdl.getInfo(args[1]);
-    console.log("songInfo ist fertig.")
+    //console.log("songInfo ist fertig.")
     const song = {
         title: songInfo.videoDetails.title,
         url: songInfo.videoDetails.video_url
@@ -140,11 +143,11 @@ function play (guild, song){
         queue.delete(guild.id);
         return;
     }
-
     const dispatcher = Warteschlange.connection
         .play(ytdl(song.url))
         .on("finish",()=>{
-            Warteschlange.shift();
+            //console.log(Warteschlange.songs);
+            Warteschlange.songs.shift();
             play(guild, Warteschlange.songs[0]);
         })
         .on("error", error => console.log(error));

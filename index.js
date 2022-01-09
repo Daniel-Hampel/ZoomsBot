@@ -1,11 +1,16 @@
 const Discord = require('discord.js');
 const {TOKEN, PREFIX} = require('./Json/config.json');
 const {MSG_HELP} = require('./Json/messages.json');
-//const {isCommand, isLetter} = require('./JavaScript/functions.js');
 //const {test} = require('./JavaScript/commands');
 const { Server } = require('http');
 const ytdl = require('ytdl-core');
 const { Console } = require('console');
+const { copy, args } = require('fluent-ffmpeg/lib/utils');
+const { chdir } = require('process');
+const { channel } = require('diagnostics_channel');
+const { Sleep } = require('./JavaScript/functions.js');
+const { captureRejectionSymbol } = require('events');
+const { cpSync } = require('fs');
 
 const client = new Discord.Client({
     intents:[
@@ -32,8 +37,20 @@ client.once("reconnecting", () =>{
 client.once("disconnect", () =>{
     console.log("Verbindung getrennt!");
 })
+client.on("voiceStateUpdate", async (oldState, newState) =>{
+    if(newState.channel.id === "929742502381101116"){
+        const channel = await newState.guild.channels.create(newState.member.user.tag, {
+            type: "voice",
+            parent: newState.channel.parent,
+        });
+        newState.member.voice.setChannel(channel);
+    }else if(oldState.channel.name === oldState.member.user.tag){
+        oldState.channel.delete();
+    } else {
+        console.log("ERROR");
+    }
+})
 
-//Commands:
 client.on("message", message =>{
     console.log("Bot geht noch")
     //console.log(message);
@@ -60,7 +77,7 @@ client.on("message", message =>{
             //let link = message.content.substring(6);
             execute(message, Warteschlange);
         }else {
-            message.channel.send('bitte benutze "'+PREFIX+'play <URL>"')
+            message.channel.send('Bitte benutze "'+PREFIX+'play <URL>"')
         }
     } else if(message.content.startsWith(PREFIX + "skip")){
         skip(message,Warteschlange);
@@ -73,6 +90,20 @@ client.on("message", message =>{
             loop = true
         }
         message.channel.send("Loop ist jetzt " + loop)
+    } else if(message.content.startsWith(PREFIX + "clear")){
+        clear(message);
+    } else if(message.content.startsWith(PREFIX + "get")){
+        permissions = message.channel.permissionsFor(message.author);
+        if(permissions.has("ADMINISTRATOR")){
+            let args = message.content.split(" ");
+            //console.log(args);
+            message.channel.send("look up the Console for informations");
+            let myChannel = message.guild.channels.catch.find(channel => channel.name === args[1]);
+            console.log(myChannel);
+        }else{
+            message.channel.send("Du hast dazu keine Berechtigung")
+        }
+        //message.client.
     } else if(message.content === "!test"){
         message.channel.send("test erfolgreich!");
     } else{
@@ -80,7 +111,36 @@ client.on("message", message =>{
     }
     
 })
-
+function Callback2(){
+    console.log("Callbackfunction wurde aufgerufen");
+}
+async function clear(message){
+    permissions = message.channel.permissionsFor(message.author);
+    if(!permissions.has("ADMINISTRATOR")){
+        return(message.channel.send("Du hast dazu keine Brechtigung!"))
+    }
+    const args = message.content.split(" ");
+    if(!args[1]){
+        return(message.channel.send('Bitte benutze '+PREFIX+'"clear <ChannelID>"'))
+    }
+    message.channel.send("schreibe <YES> wenn du dir sicher bist oder <NO> um den Vorgang abzubrechen");
+    await(client.on("message", message =>{
+        if(message.content === "YES"){
+            message.channel.send("Channel wird in 5 Sekunden gelöscht!")
+            Sleep(5000).then(()=>{
+                let channel = client.channels.cache.get(args[1]);
+                channel.clone();
+                channel.delete();
+            return;
+            });
+        }
+        if(message.content === "NO"){
+            return(message.channel.send("Vorgang abgebrochen"));
+        }
+        return
+    }))
+    
+}
 async function execute(message, Warteschlange){
     const args = message.content.split(" ");
 
@@ -107,7 +167,7 @@ async function execute(message, Warteschlange){
             voiceChannel: voiceChannel,
             connection: null,
             songs: [],
-            volume: 5,
+            volume: 3,
             playing : true
         }
         queue.set(message.guild.id, Construct);

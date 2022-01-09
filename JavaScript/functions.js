@@ -9,5 +9,9 @@ function isCommand(string){
     return false;
 }
 
+//function isTextChannel guild.
 
-module.exports = {isCommand};
+function Sleep(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+module.exports = {Sleep};

@@ -21,6 +21,6 @@
     "node-opus": "^0.3.3",
     "opusscript": "^0.0.8",
     "os": "^0.1.2",
-    "ytdl-core": "^4.9.2"
+    "ytdl-core": "^4.10.0"
   }
 }
